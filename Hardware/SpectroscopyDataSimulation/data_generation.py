@@ -4,7 +4,7 @@ import csv
 import random
 
 filename = "spectral_data.csv"
-header = ["A","B","C","D","E","F","G","H","I","J","K","L","R","S","T","U","V","W"]
+header = ["A","B","C","D","E","F","G","H","R","I","S","J","T","U","V","W","K","L"]
 samples = 10 # assume we will set the sensor to collect one sample per minute
 
 
