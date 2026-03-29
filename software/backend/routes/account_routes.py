@@ -11,7 +11,7 @@ def create_account():
 
     # Insert account into Supabase
     try:
-        response = supabase.table('Devices').insert({
+        response = supabase.table('devices').insert({
             'device_id': account['device_id'],
             'plant_species': account['plant_species'],
             'crop_area': account['crop_area'],

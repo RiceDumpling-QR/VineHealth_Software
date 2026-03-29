@@ -11,4 +11,4 @@ app.register_blueprint(alert_blueprint, url_prefix='/api/alerts')
 app.register_blueprint(account_blueprint, url_prefix='/api/account')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

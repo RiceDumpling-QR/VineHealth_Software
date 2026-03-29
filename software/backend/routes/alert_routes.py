@@ -11,7 +11,7 @@ def receive_alert():
 
     # Insert alert into Supabase
     try:
-        response = supabase.table('Alerts').insert({
+        response = supabase.table('alerts').insert({
             'alert_id': alert['alert_id'],
             'device_id': alert['device_id'],
             'timestamp': alert['timestamp'],

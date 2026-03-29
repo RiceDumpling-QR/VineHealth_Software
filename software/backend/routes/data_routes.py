@@ -9,20 +9,26 @@ def receive_data():
     if not data or 'device_id' not in data:
         return jsonify({'status': 'error', 'message': 'Invalid data format'}), 400
 
-    # Insert data into Supabase
+    # Build insert payload dynamically to avoid missing-column errors
     try:
-        response = supabase.table('Data').insert({
+        insert_payload = {
             'device_id': data['device_id'],
-            'timestamp': data['timestamp'],
-            'NDVI': data['health_indexes'].get('NDVI'),
-            'GNDVI': data['health_indexes'].get('GNDVI'),
-            'EVI': data['health_indexes'].get('EVI'),
-            'SAVI': data['health_indexes'].get('SAVI'),
-            'temperature': data['environment_data'].get('temperature'),
-            'relative_humidity': data['environment_data'].get('relative_humidity'),
-            'soil_moisture': data['environment_data'].get('soil_moisture'),
-            'light_intensity': data['environment_data'].get('light_intensity')
-        }).execute()
+            'timestamp': data.get('timestamp')
+        }
+
+        # Add health indexes (map keys to lowercase to match Postgres column names)
+        health = data.get('health_indexes', {}) or {}
+        for k, v in health.items():
+            if v is not None:
+                insert_payload[k.lower()] = v
+
+        # Add environment data (map keys to lowercase)
+        env = data.get('environment_data', {}) or {}
+        for k, v in env.items():
+            if v is not None:
+                insert_payload[k.lower()] = v
+
+        response = supabase.table('data').insert(insert_payload).execute()
         return jsonify({'status': 'success', 'message': 'Data received successfully', 'data': response.data}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
