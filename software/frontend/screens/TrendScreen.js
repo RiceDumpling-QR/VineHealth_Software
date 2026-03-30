@@ -6,6 +6,9 @@ const screenWidth = Dimensions.get('window').width;
 const COLORS = {
   darkGreen: '#3a6b35',
   lightGreen: '#6aad62',
+  mediumGreen: '#4e8c47',
+  darkGreen2: '#3a6b35',
+  alertRed: '#e53935',
   white: '#ffffff',
   textGray: '#666666',
 };
@@ -16,22 +19,28 @@ export default function TrendScreen() {
       <View style={styles.greenBody}>
         {/* Chart */}
         <View style={styles.card}>
-          <Text style={styles.chartYLabel}>NDVI Score</Text>
+          <Text style={styles.chartYLabel}>Vegetation Index Scores</Text>
           <LineChart
             data={{
-              labels: ['Day 1', 'Day 4', 'Day 7', 'Day 10', 'Day 13'],
-              datasets: [{ data: [0.5, 0.65, 0.45, 0.6, 0.55, 0.7, 0.8, 0.75, 0.85] }],
+              labels: ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'],
+              datasets: [
+                { data: [0.5, 0.6, 0.55, 0.65, 0.7, 0.68, 0.72], color: (opacity = 1) => `rgba(106,173,98,${opacity})`, strokeWidth: 2 }, // NDVI (lightGreen)
+                { data: [0.45, 0.5, 0.48, 0.52, 0.57, 0.56, 0.6], color: (opacity = 1) => `rgba(78,140,71,${opacity})`, strokeWidth: 2 }, // GNDVI (mediumGreen)
+                { data: [0.12, 0.15, 0.1, 0.08, 0.11, 0.09, 0.07], color: (opacity = 1) => `rgba(229,57,53,${opacity})`, strokeWidth: 2 }, // CWSI (red)
+                { data: [0.48, 0.52, 0.5, 0.55, 0.58, 0.57, 0.6], color: (opacity = 1) => `rgba(58,107,53,${opacity})`, strokeWidth: 2 }, // SAVI (darkGreen)
+              ],
+              legend: ['NDVI', 'GNDVI', 'CWSI', 'SAVI'],
             }}
             width={screenWidth - 72}
-            height={160}
+            height={180}
             chartConfig={{
               backgroundColor: COLORS.white,
               backgroundGradientFrom: COLORS.white,
               backgroundGradientTo: COLORS.white,
-              decimalPlaces: 1,
-              color: () => COLORS.lightGreen,
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
               labelColor: () => COLORS.textGray,
-              propsForDots: { r: '3', strokeWidth: '1', stroke: COLORS.lightGreen },
+              propsForDots: { r: '3', strokeWidth: '1' },
               propsForBackgroundLines: { stroke: '#e0e0e0' },
             }}
             bezier
@@ -40,6 +49,17 @@ export default function TrendScreen() {
             withOuterLines={false}
           />
           <Text style={styles.chartXLabel}>Days</Text>
+        </View>
+
+        {/* Index Explanation box */}
+        <View style={styles.explanationBox}>
+          <Text style={styles.explanationTitle}>Index Explanation</Text>
+          <Text style={styles.explanationText}>
+            NDVI – How green & healthy your crops are. Good: 0.6–0.9
+            {'\n'}GNDVI – Measures how well crops absorb nutrients. Good: 0.5–0.8
+            {'\n'}CWSI – Crop water stress. Lower is better. Good: 0.0–0.3
+            {'\n'}SAVI – Like NDVI but more accurate for sparse crops. Good: 0.5–0.8
+          </Text>
         </View>
 
         {/* Trend Analysis */}
@@ -107,5 +127,22 @@ const styles = StyleSheet.create({
     color: '#444',
     lineHeight: 20,
     marginBottom: 4,
+  },
+  explanationBox: {
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  explanationTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 6,
+  },
+  explanationText: {
+    fontSize: 13,
+    color: '#444',
+    lineHeight: 18,
   },
 });

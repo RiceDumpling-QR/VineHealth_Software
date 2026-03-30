@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 
 const COLORS = {
   darkGreen: '#3a6b35',
@@ -16,6 +16,10 @@ export default function ProfileScreen() {
           <View style={styles.avatar} />
         </View>
         <Text style={styles.name}>Name</Text>
+
+        <TouchableOpacity style={styles.addDeviceButton} onPress={() => { /* UI-only: no behavior */ }}>
+          <Text style={styles.addDeviceText}>Add Device</Text>
+        </TouchableOpacity>
 
         {/* Plants Info */}
         <Text style={styles.sectionTitle}>Plants Info</Text>
@@ -135,5 +139,17 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: '#e0e0e0',
+  },
+  addDeviceButton: {
+    backgroundColor: '#1a8cff',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  addDeviceText: {
+    color: COLORS.white,
+    fontWeight: '600',
   },
 });
