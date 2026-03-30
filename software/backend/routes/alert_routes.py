@@ -13,10 +13,12 @@ def receive_alert():
     try:
         response = supabase.table('alerts').insert({
             'alert_id': alert['alert_id'],
+            'user_id': alert['user_id'],
             'device_id': alert['device_id'],
             'timestamp': alert['timestamp'],
             'title': alert['title'],
-            'details': alert['details']
+            'details': alert['details'],
+            'resolved': alert['resolved'],
         }).execute()
         return jsonify({'status': 'success', 'message': 'Alert received successfully', 'data': response.data}), 200
     except Exception as e:
