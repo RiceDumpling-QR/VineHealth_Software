@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { fetchAlerts, resolveAlert } from '../services/api';
 
 const COLORS = {
   darkGreen: '#3a6b35',
@@ -6,18 +8,46 @@ const COLORS = {
 };
 
 export default function AlertsScreen() {
+  const [alerts, setAlerts] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    // fetch only unresolved alerts by default
+    fetchAlerts(false).then((a) => { if (mounted) setAlerts(a || []); });
+    return () => { mounted = false; };
+  }, []);
+
+  const handleResolve = async (alertId) => {
+    // Optimistically remove from UI
+    setAlerts((prev) => prev.filter((it) => it.alert_id !== alertId));
+    // Try to notify backend; ignore result (backend may not implement patch)
+    try { await resolveAlert(alertId); } catch (e) { /* ignore */ }
+  };
+
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <View style={styles.greenBody}>
         {/* Active Alerts */}
-        <View style={styles.alertBanner}>
-          <Text style={styles.alertBannerText}>⚠️ Critical Alert 1: xxxxxx</Text>
-        </View>
-        <View style={styles.alertBanner}>
-          <Text style={styles.alertBannerText}>⚠️ Critical Alert 2: xxxxxx</Text>
-        </View>
+        {alerts.length === 0 ? (
+          <View style={styles.alertBanner}>
+            <Text style={styles.alertBannerText}>No active alerts</Text>
+          </View>
+        ) : (
+          alerts.map((a) => (
+            <View key={a.alert_id} style={styles.alertRow}>
+              <View style={styles.alertTextWrap}>
+                <Text style={styles.alertBannerText}>⚠️ {a.title}</Text>
+                <Text style={styles.alertDetails}>{a.details}</Text>
+                <Text style={styles.alertTime}>{a.timestamp}</Text>
+              </View>
+              <TouchableOpacity style={styles.resolveButton} onPress={() => handleResolve(a.alert_id)}>
+                <Text style={styles.resolveText}>Resolve</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
 
-        {/* Alert History */}
+        {/* Alert History (kept simple) */}
         <View style={styles.card}>
           <Text style={styles.historyTitle}>Alert History</Text>
           <Text style={styles.historyItem}>• 2026-02-09 — Temperature spike detected</Text>
@@ -60,6 +90,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1a1a1a',
   },
+  alertRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fce4ec', borderRadius: 14, padding: 12, marginBottom: 10 },
+  alertTextWrap: { flex: 1, paddingRight: 8 },
+  alertDetails: { color: '#333', marginTop: 6 },
+  alertTime: { color: '#666', fontSize: 11, marginTop: 6 },
+  resolveButton: { backgroundColor: '#1a8cff', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
+  resolveText: { color: '#fff', fontWeight: '600' },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 14,

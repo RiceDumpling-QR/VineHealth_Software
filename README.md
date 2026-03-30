@@ -31,63 +31,99 @@ Capstone Github - Vine Health
    ```bash
    python app.py
    ```
-4. The backend will be available at `http://localhost:5000`.
+4. The backend will be available at `http://localhost:5001`.
 
 ### 3. Testing the Backend with cURL
-Use the following cURL commands to test the backend endpoints:
 
-#### Test `/api/data`
+Server base: `http://localhost:5001`
+
+Use the following commands to test the new endpoints. Note: `users` (profile) must exist before creating a device; `devices` must exist before sending data.
+
+#### Create profile (`/api/profile/create`)
 ```bash
-curl -X POST http://localhost:5000/api/data/ \
--H "Content-Type: application/json" \
--d '{
-  "device_id": "12345",
-  "timestamp": "2026-03-29T12:00:00Z",
-  "health_indexes": {
-    "NDVI": 0.85,
-    "GNDVI": 0.78
-  },
-  "environment_data": {
-    "temperature": 25.3,
-    "relative_humidity": 60.5
-  }
-}'
+curl -X POST http://localhost:5001/api/profile/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user_12345",
+    "plant_species": "Cabernet Sauvignon",
+    "crop_area": 250,
+    "crop_area_unit": "sqm"
+  }'
 ```
 
-#### Test `/api/alerts`
+#### Update profile (`/api/profile/update`)
 ```bash
-curl -X POST http://localhost:5000/api/alerts/ \
--H "Content-Type: application/json" \
--d '{
-  "alert_id": "alert_9876",
-  "device_id": "12345",
-  "timestamp": "2026-03-29T12:00:00Z",
-  "title": "High Temperature Alert",
-  "details": "The temperature has exceeded the threshold of 35°C. Current temperature: 38°C."
-}'
+curl -X POST http://localhost:5001/api/profile/update \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user_12345",
+    "plant_species": "Merlot",
+    "crop_area": 300,
+    "crop_area_unit": "sqm",
+    "profile_avatar": "default_01"
+  }'
 ```
 
-#### Test `/api/account/create`
+#### Create device (`/api/device/create`) — requires existing `user_id`
 ```bash
-curl -X POST http://localhost:5000/api/account/create \
--H "Content-Type: application/json" \
--d '{
-  "device_id": "12345",
-  "plant_species": "Cabernet Sauvignon",
-  "crop_area": 250,
-  "crop_area_unit": "sqm"
-}'
+curl -X POST http://localhost:5001/api/device/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "12345",
+    "user_id": "user_12345",
+    "device_name": "Vinehealth Sensor #1",
+    "location": "Plot A"
+  }'
 ```
 
-#### Test `/api/account/update`
+#### Update device (`/api/device/update`)
 ```bash
-curl -X POST http://localhost:5000/api/account/update \
--H "Content-Type: application/json" \
--d '{
-  "device_id": "12345",
-  "plant_species": "Merlot",
-  "crop_area": 300,
-  "crop_area_unit": "sqm",
-  "profile_avatar": "default_01"
-}'
+curl -X POST http://localhost:5001/api/device/update \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "12345",
+    "device_name": "Vinehealth Sensor #1 (North)",
+    "location": "Plot B"
+  }'
+```
+
+#### Send data (`/api/data`)
+```bash
+curl -X POST http://localhost:5001/api/data/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "12345",
+    "timestamp": "2026-03-29T12:00:00Z",
+    "health_indexes": {"NDVI": 0.85, "GNDVI": 0.78},
+    "environment_data": {"temperature": 25.3, "relative_humidity": 60.5}
+  }'
+```
+
+#### Query data by device and date (`/api/data?device_id=...&date=YYYY-MM-DD`)
+```bash
+curl -G 'http://localhost:5001/api/data' \
+  --data-urlencode "device_id=12345" \
+  --data-urlencode "date=2026-03-29"
+```
+
+#### Send alert (`/api/alerts`)
+```bash
+curl -X POST http://localhost:5001/api/alerts/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alert_id": "alert_9887",
+    "device_id": "12345",
+    "user_id": "user_12345",
+    "resolved": false,
+    "timestamp": "2026-03-29T12:00:00Z",
+    "title": "High Temperature Alert",
+    "details": "The temperature has exceeded the threshold of 35°C. Current temperature: 38°C."
+  }'
+```
+
+If you get foreign-key errors when inserting into `data` or `devices`, verify your Supabase tables and column names with:
+```sql
+SELECT column_name FROM information_schema.columns WHERE table_name='data';
+SELECT column_name FROM information_schema.columns WHERE table_name='devices';
+SELECT column_name FROM information_schema.columns WHERE table_name='users';
 ```

@@ -9,7 +9,7 @@ import {
   SafeAreaView,
   Dimensions,
 } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import DashboardScreen from './screens/DashboardScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import TrendScreen from './screens/TrendScreen';
 import AlertsScreen from './screens/AlertsScreen';
@@ -35,92 +35,7 @@ const TAB_TITLES = {
   alerts: 'Alerts',
 };
 
-function DashboardScreen() {
-  return (
-    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Plant Health Stats:</Text>
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statMain}>Healthy</Text>
-            <Text style={styles.statSub}>NDVI: 0.83</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statMain}>53%</Text>
-            <Text style={styles.statSub}>Relative{'\n'}Humidity (RH)</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statMain}>65 F</Text>
-            <Text style={styles.statSub}>Temperature</Text>
-          </View>
-        </View>
-      </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Vegetation Index Trend</Text>
-          <TouchableOpacity style={styles.seeMoreBtn}>
-            <Text style={styles.seeMoreText}>See More</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.chartCard}>
-          <Text style={styles.chartYLabel}>NDVI Score</Text>
-          <LineChart
-            data={{
-              labels: ['Day 1', 'Day 4', 'Day 7', 'Day 10', 'Day 13'],
-              datasets: [{ data: [0.5, 0.65, 0.45, 0.6, 0.55, 0.7, 0.8, 0.75, 0.85] }],
-            }}
-            width={screenWidth - 64}
-            height={160}
-            chartConfig={{
-              backgroundColor: COLORS.white,
-              backgroundGradientFrom: COLORS.white,
-              backgroundGradientTo: COLORS.white,
-              decimalPlaces: 1,
-              color: () => COLORS.lightGreen,
-              labelColor: () => COLORS.textGray,
-              propsForDots: { r: '3', strokeWidth: '1', stroke: COLORS.lightGreen },
-              propsForBackgroundLines: { stroke: '#e0e0e0' },
-            }}
-            bezier
-            style={styles.chart}
-            withInnerLines={true}
-            withOuterLines={false}
-          />
-          <Text style={styles.chartXLabel}>Days</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Critical Alerts</Text>
-          <TouchableOpacity style={styles.seeMoreBtn}>
-            <Text style={styles.seeMoreText}>See more</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.alertCard}>
-          <View style={styles.alertHeader}>
-            <View style={styles.alertDot} />
-            <Text style={styles.alertTitle}>CRITICAL ALERT</Text>
-          </View>
-          <Text style={styles.alertLocation}>Block C — Rows 12–18</Text>
-          <Text style={styles.alertHeadline}>Rapid plant health decline detected</Text>
-          <Text style={styles.alertBody}>Vegetation index dropped 14% in 48 hours.</Text>
-          <Text style={styles.alertBody}>
-            This pattern is consistent with early disease or acute stress.
-          </Text>
-          <Text style={styles.alertBody}>
-            <Text style={styles.alertBold}>Recommended action: </Text>
-            Inspect vines in this block today for visual symptoms.
-          </Text>
-          <Text style={styles.alertEvidence}>Evidence: NDVI trend ↓, soil moisture normal</Text>
-        </View>
-      </View>
-
-      <View style={{ height: 80 }} />
-    </ScrollView>
-  );
-}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -309,4 +224,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     marginTop: 3,
   },
+  selectorRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  selector: { backgroundColor: '#f1f1f1', padding: 8, borderRadius: 8 },
+  selectorText: { color: COLORS.textDark, fontWeight: '600' },
+  dropdown: { backgroundColor: COLORS.white, borderRadius: 8, marginTop: 6, padding: 6 },
+  dropdownItem: { paddingVertical: 8, paddingHorizontal: 6 },
+  barChartContainer: { flexDirection: 'row', marginTop: 12 },
+  barYAxis: { width: 30, alignItems: 'flex-end', paddingRight: 6 },
+  yLabel: { fontSize: 10, color: COLORS.textGray, height: 40 },
+  barGroupsRow: { flexDirection: 'row', flex: 1, justifyContent: 'space-between' },
+  barGroup: { alignItems: 'center', flex: 1 },
+  groupLabel: { fontSize: 12, color: COLORS.textGray, marginBottom: 6, textTransform: 'capitalize' },
+  barsRow: { flexDirection: 'row', alignItems: 'flex-end', height: 140, gap: 6 },
+  barItem: { alignItems: 'center', flex: 1 },
+  bar: { width: 18, borderRadius: 4 },
+  barLabel: { fontSize: 10, color: COLORS.textGray, marginTop: 6 },
 });
