@@ -44,10 +44,10 @@ Use the following commands to test the new endpoints. Note: `users` (profile) mu
 curl -X POST http://localhost:5001/api/profile/create \
   -H "Content-Type: application/json" \
   -d '{
-    "user_id": "user_12345",
-    "plant_species": "Cabernet Sauvignon",
-    "crop_area": 250,
-    "crop_area_unit": "sqm"
+    "user_id": "user@example.com",
+    "username": "vinefarmer",
+    "password": "securepassword",
+    "profile_avatar": "default_01"
   }'
 ```
 
@@ -56,11 +56,9 @@ curl -X POST http://localhost:5001/api/profile/create \
 curl -X POST http://localhost:5001/api/profile/update \
   -H "Content-Type: application/json" \
   -d '{
-    "user_id": "user_12345",
-    "plant_species": "Merlot",
-    "crop_area": 300,
-    "crop_area_unit": "sqm",
-    "profile_avatar": "default_01"
+    "user_id": "user@example.com",
+    "username": "vinefarmer2",
+    "profile_avatar": "default_02"
   }'
 ```
 
@@ -70,7 +68,7 @@ curl -X POST http://localhost:5001/api/device/create \
   -H "Content-Type: application/json" \
   -d '{
     "device_id": "12345",
-    "user_id": "user_12345",
+    "user_id": "user@example.com",
     "device_name": "Vinehealth Sensor #1",
     "location": "Plot A"
   }'
@@ -106,14 +104,14 @@ curl -G 'http://localhost:5001/api/data' \
   --data-urlencode "date=2026-03-29"
 ```
 
-#### Send alert (`/api/alerts`)
+#### ~~Send alert (`/api/alerts`)~~ *(disabled — alerts are auto-generated on data ingestion)*
 ```bash
 curl -X POST http://localhost:5001/api/alerts/ \
   -H "Content-Type: application/json" \
   -d '{
     "alert_id": "alert_9887",
     "device_id": "12345",
-    "user_id": "user_12345",
+    "user_id": "user@example.com",
     "resolved": false,
     "timestamp": "2026-03-29T12:00:00Z",
     "title": "High Temperature Alert",

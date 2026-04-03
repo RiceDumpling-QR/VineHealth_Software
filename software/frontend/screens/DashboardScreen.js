@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { StyleSheet, Dimensions } from 'react-native';
-import { fetchData, fetchAlerts } from '../services/api';
-
-const screenWidth = Dimensions.get('window').width;
+import { StyleSheet } from 'react-native';
+import { fetchData, fetchAlerts, fetchUserDevices, fetchDeviceDates } from '../services/api';
 
 const COLORS = {
   darkGreen: '#3a6b35',
@@ -15,40 +13,56 @@ const COLORS = {
   textGray: '#666666',
 };
 
-export default function DashboardScreen() {
-  const [mockDevices] = useState(['12345', '67890', 'dev_abc']);
-  const [mockDates] = useState(['2026-03-29', '2026-03-30', '2026-03-31']);
-  const [selectedDevice, setSelectedDevice] = useState(mockDevices[0]);
-  const [selectedDate, setSelectedDate] = useState(mockDates[0]);
+export default function DashboardScreen({ user }) {
+  const [devices, setDevices] = useState([]);
+  const [dates, setDates] = useState([]);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [showDevice, setShowDevice] = useState(false);
   const [showDate, setShowDate] = useState(false);
 
   const [dataRows, setDataRows] = useState([]);
+  const [summary, setSummary] = useState({});
   const [alerts, setAlerts] = useState([]);
 
+  // Fetch devices belonging to the logged-in user
   useEffect(() => {
     let mounted = true;
-    fetchAlerts().then((a) => { if (mounted) setAlerts(a || []); });
+    fetchUserDevices(user.userId).then((devs) => {
+      if (!mounted) return;
+      setDevices(devs || []);
+      if (devs && devs.length > 0) setSelectedDevice(devs[0].device_id);
+    });
     return () => { mounted = false; };
-  }, []);
+  }, [user.userId]);
 
   useEffect(() => {
     let mounted = true;
-    fetchData(selectedDevice, selectedDate).then((res) => { if (mounted) setDataRows(res || []); });
+    fetchAlerts(false, user.userId).then((a) => { if (mounted) setAlerts(a || []); });
+    return () => { mounted = false; };
+  }, [user.userId]);
+
+  useEffect(() => {
+    if (!selectedDevice) return;
+    let mounted = true;
+    fetchDeviceDates(selectedDevice).then((ds) => {
+      if (!mounted) return;
+      setDates(ds || []);
+      setSelectedDate((prev) => (ds && ds.length > 0 ? ds[0] : prev));
+    });
+    return () => { mounted = false; };
+  }, [selectedDevice]);
+
+  useEffect(() => {
+    if (!selectedDevice) return;
+    let mounted = true;
+    fetchData(selectedDevice, selectedDate).then((res) => {
+      if (!mounted) return;
+      setDataRows(res.data || []);
+      setSummary(res.summary || {});
+    });
     return () => { mounted = false; };
   }, [selectedDevice, selectedDate]);
-
-  const getMockData = (device, date) => {
-    const key = (device || '') + '|' + (date || '');
-    let sum = 0;
-    for (let i = 0; i < key.length; i++) sum += key.charCodeAt(i);
-    const mk = (n) => Math.min(0.98, 0.2 + ((sum + n * 13) % 60) / 100);
-    return {
-      sunrise: { ndvi: mk(1), gndvi: mk(2), cwsi: mk(3), savi: mk(4) },
-      noon:    { ndvi: mk(5), gndvi: mk(6), cwsi: mk(7), savi: mk(8) },
-      sunset:  { ndvi: mk(9), gndvi: mk(10), cwsi: mk(11), savi: mk(12) },
-    };
-  };
 
   // Aggregate real dataRows into averages per time_range
   const aggregateByTimeRange = () => {
@@ -83,11 +97,15 @@ export default function DashboardScreen() {
         <Text style={styles.sectionLabel}>Environmental Stats:</Text>
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statMain}>53%</Text>
+            <Text style={styles.statMain}>
+              {summary.avg_relative_humidity != null ? `${summary.avg_relative_humidity.toFixed(1)}%` : '—'}
+            </Text>
             <Text style={styles.statSub}>Relative{"\n"}Humidity (RH)</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statMain}>65 F</Text>
+            <Text style={styles.statMain}>
+              {summary.avg_temperature != null ? `${summary.avg_temperature.toFixed(1)} °C` : '—'}
+            </Text>
             <Text style={styles.statSub}>Temperature</Text>
           </View>
         </View>
@@ -116,21 +134,26 @@ export default function DashboardScreen() {
 
           {showDevice && (
             <View style={styles.dropdown}>
-              {mockDevices.map((d) => (
-                <TouchableOpacity key={d} style={styles.dropdownItem} onPress={() => { setSelectedDevice(d); setShowDevice(false); }}>
-                  <Text>{d}</Text>
-                </TouchableOpacity>
-              ))}
+              {devices.length === 0
+                ? <Text style={{ padding: 8, color: COLORS.textGray }}>No devices</Text>
+                : devices.map((d) => (
+                  <TouchableOpacity key={d.device_id} style={styles.dropdownItem} onPress={() => { setSelectedDevice(d.device_id); setShowDevice(false); }}>
+                    <Text>{d.device_id}{d.device_name ? ` — ${d.device_name}` : ''}</Text>
+                  </TouchableOpacity>
+                ))
+              }
             </View>
           )}
 
           {showDate && (
             <View style={styles.dropdown}>
-              {mockDates.map((dt) => (
-                <TouchableOpacity key={dt} style={styles.dropdownItem} onPress={() => { setSelectedDate(dt); setShowDate(false); }}>
-                  <Text>{dt}</Text>
-                </TouchableOpacity>
-              ))}
+              {dates.length === 0
+                ? <Text style={{ padding: 8, color: COLORS.textGray }}>No data</Text>
+                : dates.map((dt) => (
+                  <TouchableOpacity key={dt} style={styles.dropdownItem} onPress={() => { setSelectedDate(dt); setShowDate(false); }}>
+                    <Text>{dt}</Text>
+                  </TouchableOpacity>
+                ))}
             </View>
           )}
 

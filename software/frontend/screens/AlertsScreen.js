@@ -7,21 +7,21 @@ const COLORS = {
   white: '#ffffff',
 };
 
-export default function AlertsScreen() {
+export default function AlertsScreen({ user }) {
   const [alerts, setAlerts] = useState([]);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     let mounted = true;
-    // fetch only unresolved alerts by default
-    fetchAlerts(false).then((a) => { if (mounted) setAlerts(a || []); });
+    fetchAlerts(false, user.userId).then((a) => { if (mounted) setAlerts(a || []); });
+    fetchAlerts(undefined, user.userId).then((a) => { if (mounted) setHistory(a || []); });
     return () => { mounted = false; };
-  }, []);
+  }, [user.userId]);
 
   const handleResolve = async (alertId) => {
-    // Optimistically remove from UI
     setAlerts((prev) => prev.filter((it) => it.alert_id !== alertId));
-    // Try to notify backend; ignore result (backend may not implement patch)
-    try { await resolveAlert(alertId); } catch (e) { /* ignore */ }
+    await resolveAlert(alertId);
+    fetchAlerts(undefined, user.userId).then((a) => setHistory(a || []));
   };
 
   return (
@@ -47,13 +47,18 @@ export default function AlertsScreen() {
           ))
         )}
 
-        {/* Alert History (kept simple) */}
+        {/* Alert History */}
         <View style={styles.card}>
           <Text style={styles.historyTitle}>Alert History</Text>
-          <Text style={styles.historyItem}>• 2026-02-09 — Temperature spike detected</Text>
-          <Text style={styles.historyItem}>• 2026-02-08 — Soil moisture dropped below safe level</Text>
-          <Text style={styles.historyItem}>• 2026-02-07 — Light exposure unusually low</Text>
-          <Text style={styles.historyItem}>...</Text>
+          {history.length === 0 ? (
+            <Text style={styles.historyItem}>No alert history.</Text>
+          ) : (
+            history.map((a) => (
+              <Text key={a.alert_id} style={styles.historyItem}>
+                • {a.timestamp} — {a.title}{a.resolved ? ' ✓' : ''}
+              </Text>
+            ))
+          )}
         </View>
 
         <View style={{ height: 40 }} />

@@ -21,14 +21,43 @@ def create_device():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+    # Check if device already exists — if so, reassign it to this user
+    try:
+        existing = supabase.table('devices').select('device_id').eq('device_id', device_id).execute()
+        if existing.data:
+            supabase.table('devices').update({
+                'user_id': user_id,
+                'device_name': payload.get('device_name'),
+                'location': payload.get('location'),
+            }).eq('device_id', device_id).execute()
+            return jsonify({
+                'status': 'success',
+                'existed': True,
+                'message': 'Device already exists and has been added to you',
+            }), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
     try:
         response = supabase.table('devices').insert({
             'device_id': device_id,
             'user_id': user_id,
             'device_name': payload.get('device_name'),
-            'location': payload.get('location')
+            'location': payload.get('location'),
         }).execute()
-        return jsonify({'status': 'success', 'message': 'Device created successfully', 'data': response.data}), 201
+        return jsonify({'status': 'success', 'existed': False, 'message': 'Device created successfully', 'data': response.data}), 201
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@device_blueprint.route('/list', methods=['GET'])
+def list_devices():
+    user_id = request.args.get('user_id', '').strip()
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'user_id query parameter required'}), 400
+    try:
+        response = supabase.table('devices').select('*').eq('user_id', user_id).execute()
+        return jsonify({'status': 'success', 'data': response.data}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 

@@ -13,6 +13,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import TrendScreen from './screens/TrendScreen';
 import AlertsScreen from './screens/AlertsScreen';
+import LoginScreen from './screens/LoginScreen';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -38,15 +39,20 @@ const TAB_TITLES = {
 
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const isHome = activeTab === 'home';
 
+  if (!user) {
+    return <LoginScreen onLogin={(userId, username) => setUser({ userId, username })} />;
+  }
+
   const renderScreen = () => {
     switch (activeTab) {
-      case 'profile': return <ProfileScreen />;
+      case 'profile': return <ProfileScreen user={user} />;
       case 'trend':   return <TrendScreen />;
-      case 'alerts':  return <AlertsScreen />;
-      default:        return <DashboardScreen />;
+      case 'alerts':  return <AlertsScreen user={user} />;
+      default:        return <DashboardScreen user={user} />;
     }
   };
 

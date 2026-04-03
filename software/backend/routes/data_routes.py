@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from config import supabase
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from utils.alert_rules import generate_alerts
 
 data_blueprint = Blueprint('data', __name__)
 
@@ -60,17 +61,30 @@ def receive_data():
             if v is not None:
                 insert_payload[k.lower()] = v
 
-        # Ensure device exists to satisfy FK constraint
+        # Ensure device exists and retrieve user_id (needed for alert generation)
         device_id = data['device_id']
+        user_id = None
         try:
-            dev_check = supabase.table('devices').select('device_id').eq('device_id', device_id).execute()
+            dev_check = supabase.table('devices').select('device_id,user_id').eq('device_id', device_id).execute()
             if not dev_check or not getattr(dev_check, 'data', None):
                 return jsonify({'status': 'error', 'message': f"Device '{device_id}' not found. Create the device before sending data."}), 400
+            user_id = dev_check.data[0].get('user_id')
         except Exception:
-            # if check fails, return generic error
             return jsonify({'status': 'error', 'message': 'Failed to verify device existence'}), 500
 
         response = supabase.table('data').insert(insert_payload).execute()
+
+        # Generate and store alerts based on health indexes
+        if health:
+            health_lower = {k.lower(): v for k, v in health.items() if v is not None}
+            timestamp_iso = ny.isoformat()
+            alerts = generate_alerts(device_id, user_id, health_lower, timestamp_iso)
+            if alerts:
+                try:
+                    supabase.table('alerts').insert(alerts).execute()
+                except Exception:
+                    pass  # alert insert failure should not block the data response
+
         return jsonify({'status': 'success', 'message': 'Data received successfully', 'data': response.data}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -102,5 +116,21 @@ def query_data():
                 'avg_relative_humidity': avg_hum
             }
         }), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@data_blueprint.route('/dates', methods=['GET'], strict_slashes=False)
+def query_dates():
+    """Return all distinct dates (sorted descending) that exist for a given device_id."""
+    device_id = request.args.get('device_id')
+    if not device_id:
+        return jsonify({'status': 'error', 'message': 'device_id query parameter is required'}), 400
+
+    try:
+        resp = supabase.table('data').select('date').eq('device_id', device_id).execute()
+        rows = resp.data if getattr(resp, 'data', None) else []
+        dates = sorted({r['date'] for r in rows if r.get('date')}, reverse=True)
+        return jsonify({'status': 'success', 'dates': dates}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
