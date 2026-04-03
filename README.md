@@ -31,17 +31,17 @@ Capstone Github - Vine Health
    ```bash
    python app.py
    ```
-4. The backend will be available at `http://localhost:5001`.
+4. The backend will be available at `https://vinehealth-software.onrender.com`.
 
 ### 3. Testing the Backend with cURL
 
-Server base: `http://localhost:5001`
+Server base: `https://vinehealth-software.onrender.com`
 
 Use the following commands to test the new endpoints. Note: `users` (profile) must exist before creating a device; `devices` must exist before sending data.
 
 #### Create profile (`/api/profile/create`)
 ```bash
-curl -X POST http://localhost:5001/api/profile/create \
+curl -X POST https://vinehealth-software.onrender.com/api/profile/create \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user@example.com",
@@ -53,7 +53,7 @@ curl -X POST http://localhost:5001/api/profile/create \
 
 #### Update profile (`/api/profile/update`)
 ```bash
-curl -X POST http://localhost:5001/api/profile/update \
+curl -X POST https://vinehealth-software.onrender.com/api/profile/update \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user@example.com",
@@ -64,7 +64,7 @@ curl -X POST http://localhost:5001/api/profile/update \
 
 #### Create device (`/api/device/create`) — requires existing `user_id`
 ```bash
-curl -X POST http://localhost:5001/api/device/create \
+curl -X POST https://vinehealth-software.onrender.com/api/device/create \
   -H "Content-Type: application/json" \
   -d '{
     "device_id": "12345",
@@ -76,7 +76,7 @@ curl -X POST http://localhost:5001/api/device/create \
 
 #### Update device (`/api/device/update`)
 ```bash
-curl -X POST http://localhost:5001/api/device/update \
+curl -X POST https://vinehealth-software.onrender.com/api/device/update \
   -H "Content-Type: application/json" \
   -d '{
     "device_id": "12345",
@@ -87,7 +87,7 @@ curl -X POST http://localhost:5001/api/device/update \
 
 #### Send data (`/api/data`)
 ```bash
-curl -X POST http://localhost:5001/api/data/ \
+curl -X POST https://vinehealth-software.onrender.com/api/data/ \
   -H "Content-Type: application/json" \
   -d '{
     "device_id": "12345",
@@ -99,14 +99,14 @@ curl -X POST http://localhost:5001/api/data/ \
 
 #### Query data by device and date (`/api/data?device_id=...&date=YYYY-MM-DD`)
 ```bash
-curl -G 'http://localhost:5001/api/data' \
+curl -G 'https://vinehealth-software.onrender.com/api/data' \
   --data-urlencode "device_id=12345" \
   --data-urlencode "date=2026-03-29"
 ```
 
 #### ~~Send alert (`/api/alerts`)~~ *(disabled — alerts are auto-generated on data ingestion)*
 ```bash
-curl -X POST http://localhost:5001/api/alerts/ \
+curl -X POST https://vinehealth-software.onrender.com/api/alerts/ \
   -H "Content-Type: application/json" \
   -d '{
     "alert_id": "alert_9887",
