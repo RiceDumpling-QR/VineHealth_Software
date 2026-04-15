@@ -88,6 +88,29 @@ export async function fetchDeviceDates(device_id) {
   }
 }
 
+export async function fetchTrendData(device_id, start_date, end_date) {
+  try {
+    const url = `${BASE}/api/data/range?device_id=${encodeURIComponent(device_id)}&start_date=${encodeURIComponent(start_date)}&end_date=${encodeURIComponent(end_date)}`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function removeDevice(device_id) {
+  const res = await fetch(`${BASE}/api/device/unassign`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_id }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Failed to remove device');
+  return json;
+}
+
 export async function addDevice(device_id, user_id, device_name, location) {
   const body = { device_id, user_id, device_name };
   if (location && location.trim()) body.location = location.trim();

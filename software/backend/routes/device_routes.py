@@ -62,6 +62,21 @@ def list_devices():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@device_blueprint.route('/unassign', methods=['PATCH'])
+def unassign_device():
+    """Remove the user association from a device (sets user_id to null)."""
+    payload = request.get_json()
+    if not payload or 'device_id' not in payload:
+        return jsonify({'status': 'error', 'message': 'device_id is required'}), 400
+
+    device_id = payload['device_id']
+    try:
+        supabase.table('devices').update({'user_id': None}).eq('device_id', device_id).execute()
+        return jsonify({'status': 'success', 'message': 'Device unassigned'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @device_blueprint.route('/update', methods=['POST'])
 def update_device():
     payload = request.get_json()

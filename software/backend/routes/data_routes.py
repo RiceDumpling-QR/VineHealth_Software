@@ -134,3 +134,31 @@ def query_dates():
         return jsonify({'status': 'success', 'dates': dates}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@data_blueprint.route('/range', methods=['GET'], strict_slashes=False)
+def query_range():
+    """Return all data rows for a device between start_date and end_date (inclusive), sorted by date then time_range."""
+    device_id = request.args.get('device_id')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    if not device_id or not start_date or not end_date:
+        return jsonify({'status': 'error', 'message': 'device_id, start_date, and end_date are required'}), 400
+
+    try:
+        resp = (
+            supabase.table('data')
+            .select('*')
+            .eq('device_id', device_id)
+            .gte('date', start_date)
+            .lte('date', end_date)
+            .execute()
+        )
+        rows = resp.data if getattr(resp, 'data', None) else []
+
+        time_order = {'sunrise': 0, 'noon': 1, 'sunset': 2, 'night': 3}
+        rows.sort(key=lambda r: (r.get('date', ''), time_order.get(r.get('time_range', ''), 4)))
+
+        return jsonify({'status': 'success', 'data': rows}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500

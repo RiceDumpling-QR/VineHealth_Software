@@ -42,7 +42,7 @@ export default function LoginScreen({ onLogin }) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={styles.logo}>🌱</Text>
-      <Text style={styles.title}>PlantGuard</Text>
+      <Text style={styles.title}>VineHealth</Text>
 
       <View style={styles.card}>
         <Text style={styles.heading}>{mode === 'login' ? 'Sign In' : 'Create Account'}</Text>

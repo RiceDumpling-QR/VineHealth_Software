@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator } from 'react-native';
-import { fetchUserDevices, fetchData, addDevice } from '../services/api';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { fetchUserDevices, fetchData, addDevice, removeDevice } from '../services/api';
 
 const COLORS = {
   darkGreen: '#3a6b35',
@@ -20,6 +20,27 @@ export default function ProfileScreen({ user }) {
   const [addError, setAddError] = useState('');
   const [addInfo, setAddInfo] = useState('');
   const [adding, setAdding] = useState(false);
+
+  const handleRemoveDevice = (device_id, device_name) => {
+    Alert.alert(
+      'Remove Device',
+      `Remove "${device_name || device_id}" from your account?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove', style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeDevice(device_id);
+              setDevices((prev) => prev.filter((d) => d.device_id !== device_id));
+            } catch (e) {
+              Alert.alert('Error', e.message);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const openModal = () => {
     setDeviceId(''); setDeviceName(''); setLocation('');
@@ -149,8 +170,13 @@ export default function ProfileScreen({ user }) {
               <View key={d.device_id}>
                 {i > 0 && <View style={styles.rowDivider} />}
                 <View style={styles.deviceRow}>
-                  <Text style={styles.deviceId}>{d.device_name} ({d.device_id})</Text>
-                  {d.location ? <Text style={styles.deviceDesc}>{d.location}</Text> : null}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.deviceId}>{d.device_name} ({d.device_id})</Text>
+                    {d.location ? <Text style={styles.deviceDesc}>{d.location}</Text> : null}
+                  </View>
+                  <TouchableOpacity onPress={() => handleRemoveDevice(d.device_id, d.device_name)}>
+                    <Text style={styles.removeBtn}>Remove</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ))
@@ -248,6 +274,14 @@ const styles = StyleSheet.create({
   },
   deviceRow: {
     paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  removeBtn: {
+    fontSize: 13,
+    color: '#e53935',
+    fontWeight: '600',
+    paddingLeft: 12,
   },
   deviceId: {
     fontSize: 14,

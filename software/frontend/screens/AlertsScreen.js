@@ -7,9 +7,12 @@ const COLORS = {
   white: '#ffffff',
 };
 
+const HISTORY_PAGE = 5;
+
 export default function AlertsScreen({ user }) {
   const [alerts, setAlerts] = useState([]);
   const [history, setHistory] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE);
 
   useEffect(() => {
     let mounted = true;
@@ -53,11 +56,23 @@ export default function AlertsScreen({ user }) {
           {history.length === 0 ? (
             <Text style={styles.historyItem}>No alert history.</Text>
           ) : (
-            history.map((a) => (
-              <Text key={a.alert_id} style={styles.historyItem}>
-                • {a.timestamp} — {a.title}{a.resolved ? ' ✓' : ''}
-              </Text>
-            ))
+            <>
+              {history.slice(0, visibleCount).map((a) => (
+                <Text key={a.alert_id} style={styles.historyItem}>
+                  • {a.timestamp} — {a.title}{a.resolved ? ' ✓' : ''}
+                </Text>
+              ))}
+              {visibleCount < history.length && (
+                <TouchableOpacity
+                  style={styles.showMoreBtn}
+                  onPress={() => setVisibleCount((c) => c + HISTORY_PAGE)}
+                >
+                  <Text style={styles.showMoreText}>
+                    Show more ({history.length - visibleCount} remaining)
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
         </View>
 
@@ -117,5 +132,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#444',
     lineHeight: 22,
+  },
+  showMoreBtn: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  showMoreText: {
+    fontSize: 13,
+    color: '#3a6b35',
+    fontWeight: '600',
   },
 });

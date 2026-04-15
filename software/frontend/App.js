@@ -14,6 +14,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import TrendScreen from './screens/TrendScreen';
 import AlertsScreen from './screens/AlertsScreen';
 import LoginScreen from './screens/LoginScreen';
+import { useAlertNotifications } from './hooks/useAlertNotifications';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -38,6 +39,11 @@ const TAB_TITLES = {
 
 
 
+function AppContent({ user }) {
+  useAlertNotifications(user?.userId);
+  return null; // side-effects only
+}
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
@@ -50,7 +56,7 @@ export default function App() {
   const renderScreen = () => {
     switch (activeTab) {
       case 'profile': return <ProfileScreen user={user} />;
-      case 'trend':   return <TrendScreen />;
+      case 'trend':   return <TrendScreen user={user} />;
       case 'alerts':  return <AlertsScreen user={user} />;
       default:        return <DashboardScreen user={user} />;
     }
@@ -58,6 +64,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isHome ? COLORS.darkGreen : COLORS.white }]}>
+      <AppContent user={user} />
       <StatusBar style={isHome ? 'light' : 'dark'} />
 
       {/* Header */}
