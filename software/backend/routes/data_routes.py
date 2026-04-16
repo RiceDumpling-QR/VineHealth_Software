@@ -38,7 +38,7 @@ def receive_data():
         # date as YYYY-MM-DD in EST
         insert_payload['date'] = ny.date().isoformat()
 
-        # determine time range
+        # determine time range — only sunrise/noon/sunset are accepted
         hour = ny.hour
         if 3 <= hour < 9:
             insert_payload['time_range'] = 'sunrise'
@@ -47,7 +47,7 @@ def receive_data():
         elif 15 <= hour < 21:
             insert_payload['time_range'] = 'sunset'
         else:
-            insert_payload['time_range'] = 'night'
+            return jsonify({'status': 'error', 'message': 'Data outside active hours (3 AM–9 PM EST). Only sunrise, noon, and sunset readings are accepted.'}), 400
 
         # Add health indexes (map keys to lowercase to match Postgres column names)
         health = data.get('health_indexes', {}) or {}
@@ -69,6 +69,8 @@ def receive_data():
             if not dev_check or not getattr(dev_check, 'data', None):
                 return jsonify({'status': 'error', 'message': f"Device '{device_id}' not found. Create the device before sending data."}), 400
             user_id = dev_check.data[0].get('user_id')
+            if user_id is None:
+                return jsonify({'status': 'error', 'message': f"Device '{device_id}' is not assigned to any user. Data ingestion is not allowed."}), 403
         except Exception:
             return jsonify({'status': 'error', 'message': 'Failed to verify device existence'}), 500
 

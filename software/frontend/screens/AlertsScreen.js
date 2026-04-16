@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { fetchAlerts, resolveAlert } from '../services/api';
+import { fetchAlerts, resolveAlert, fetchUserDevices } from '../services/api';
 
 const COLORS = {
   darkGreen: '#3a6b35',
@@ -13,11 +13,18 @@ export default function AlertsScreen({ user }) {
   const [alerts, setAlerts] = useState([]);
   const [history, setHistory] = useState([]);
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE);
+  const [deviceMap, setDeviceMap] = useState({});
 
   useEffect(() => {
     let mounted = true;
     fetchAlerts(false, user.userId).then((a) => { if (mounted) setAlerts(a || []); });
     fetchAlerts(undefined, user.userId).then((a) => { if (mounted) setHistory(a || []); });
+    fetchUserDevices(user.userId).then((devs) => {
+      if (!mounted) return;
+      const map = {};
+      (devs || []).forEach((d) => { map[d.device_id] = d.device_name || d.device_id; });
+      setDeviceMap(map);
+    });
     return () => { mounted = false; };
   }, [user.userId]);
 
@@ -41,6 +48,7 @@ export default function AlertsScreen({ user }) {
               <View style={styles.alertTextWrap}>
                 <Text style={styles.alertBannerText}>⚠️ {a.title}</Text>
                 <Text style={styles.alertDetails}>{a.details}</Text>
+                <Text style={styles.alertDevice}>Device: {deviceMap[a.device_id] || a.device_id}</Text>
                 <Text style={styles.alertTime}>{a.timestamp}</Text>
               </View>
               <TouchableOpacity style={styles.resolveButton} onPress={() => handleResolve(a.alert_id)}>
@@ -59,7 +67,7 @@ export default function AlertsScreen({ user }) {
             <>
               {history.slice(0, visibleCount).map((a) => (
                 <Text key={a.alert_id} style={styles.historyItem}>
-                  • {a.timestamp} — {a.title}{a.resolved ? ' ✓' : ''}
+                  • {a.timestamp} — {a.title}{a.resolved ? ' ✓' : ''}{'\n'}  Device: {deviceMap[a.device_id] || a.device_id}
                 </Text>
               ))}
               {visibleCount < history.length && (
@@ -113,6 +121,7 @@ const styles = StyleSheet.create({
   alertRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fce4ec', borderRadius: 14, padding: 12, marginBottom: 10 },
   alertTextWrap: { flex: 1, paddingRight: 8 },
   alertDetails: { color: '#333', marginTop: 6 },
+  alertDevice: { color: '#555', fontSize: 12, fontWeight: '600', marginTop: 4 },
   alertTime: { color: '#666', fontSize: 11, marginTop: 6 },
   resolveButton: { backgroundColor: '#1a8cff', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
   resolveText: { color: '#fff', fontWeight: '600' },

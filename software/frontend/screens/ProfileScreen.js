@@ -75,7 +75,8 @@ export default function ProfileScreen({ user }) {
       setDevices(d || []);
       // fetch today's summary for the first device
       if (d && d.length > 0) {
-        const today = new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         fetchData(d[0].device_id, today).then((res) => {
           if (mounted) {
             console.log('ProfileScreen: fetched summary ->', res.summary);

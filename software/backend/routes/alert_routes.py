@@ -33,12 +33,21 @@ def list_alerts():
         # Optional query param: ?resolved=true|false
         resolved_param = request.args.get('resolved')
         user_id_param = request.args.get('user_id')
+
+        # When a user_id is provided, restrict alerts to that user's current devices only.
+        # A new user with no devices will get an empty response immediately.
+        if user_id_param:
+            dev_resp = supabase.table('devices').select('device_id').eq('user_id', user_id_param).execute()
+            device_ids = [d['device_id'] for d in (dev_resp.data or [])]
+            if not device_ids:
+                return jsonify({'status': 'success', 'data': []}), 200
+
         query = supabase.table('alerts').select('*')
         if resolved_param is not None:
             resolved_bool = str(resolved_param).lower() in ('1', 'true', 't', 'yes')
             query = query.eq('resolved', resolved_bool)
         if user_id_param:
-            query = query.eq('user_id', user_id_param)
+            query = query.in_('device_id', device_ids)
         response = query.order('timestamp', desc=True).execute()
         return jsonify({'status': 'success', 'data': response.data}), 200
     except Exception as e:

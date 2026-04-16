@@ -3,6 +3,8 @@ from config import supabase
 
 device_blueprint = Blueprint('device', __name__)
 
+VALID_DEVICE_IDS = {'A7K3M', '9XR2P', 'B5N8Q'}
+
 
 @device_blueprint.route('/create', methods=['POST'])
 def create_device():
@@ -13,39 +15,40 @@ def create_device():
     device_id = payload['device_id']
     user_id = payload['user_id']
 
-    # Ensure the user exists
-    try:
-        user_check = supabase.table('users').select('user_id').eq('user_id', user_id).execute()
-        if not user_check or not getattr(user_check, 'data', None):
-            return jsonify({'status': 'error', 'message': f'User {user_id} does not exist'}), 400
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    if device_id not in VALID_DEVICE_IDS:
+        return jsonify({
+            'status': 'error',
+            'message': "The device you are trying to connect to doesn't exist. Please check the device ID and try again.",
+        }), 404
 
-    # Check if device already exists — if so, reassign it to this user
     try:
-        existing = supabase.table('devices').select('device_id').eq('device_id', device_id).execute()
-        if existing.data:
-            supabase.table('devices').update({
+        existing = supabase.table('devices').select('device_id, user_id').eq('device_id', device_id).execute()
+
+        if not existing.data:
+            # Device is valid but not yet in DB — create it and assign to this user
+            supabase.table('devices').insert({
+                'device_id': device_id,
                 'user_id': user_id,
                 'device_name': payload.get('device_name'),
                 'location': payload.get('location'),
-            }).eq('device_id', device_id).execute()
-            return jsonify({
-                'status': 'success',
-                'existed': True,
-                'message': 'Device already exists and has been added to you',
-            }), 200
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+            }).execute()
+            return jsonify({'status': 'success', 'existed': False, 'message': 'Device added to your account successfully.'}), 201
 
-    try:
-        response = supabase.table('devices').insert({
-            'device_id': device_id,
+        current_owner = existing.data[0].get('user_id')
+        if current_owner is not None:
+            return jsonify({
+                'status': 'error',
+                'message': 'This device is already claimed by another user.',
+            }), 409
+
+        # Device exists and is unclaimed — assign to this user
+        supabase.table('devices').update({
             'user_id': user_id,
             'device_name': payload.get('device_name'),
             'location': payload.get('location'),
-        }).execute()
-        return jsonify({'status': 'success', 'existed': False, 'message': 'Device created successfully', 'data': response.data}), 201
+        }).eq('device_id', device_id).execute()
+        return jsonify({'status': 'success', 'existed': True, 'message': 'Device added to your account successfully.'}), 200
+
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 

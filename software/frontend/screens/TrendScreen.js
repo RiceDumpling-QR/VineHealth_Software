@@ -71,7 +71,7 @@ export default function TrendScreen({ user }) {
 
   // Build chart data from trendRows
   const buildChartData = () => {
-    if (!trendRows || trendRows.length === 0) return null;
+    if (!trendRows || trendRows.length < 2) return null;
 
     const sorted = [...trendRows].sort((a, b) => {
       if (a.date !== b.date) return a.date < b.date ? -1 : 1;
@@ -215,7 +215,11 @@ export default function TrendScreen({ user }) {
             </View>
           ) : !chartData ? (
             <View style={styles.centeredBox}>
-              <Text style={styles.statusText}>No data for selected range</Text>
+              <Text style={styles.statusText}>
+                {trendRows.length === 1
+                  ? 'Need at least 2 readings to display the chart'
+                  : 'No data for selected range'}
+              </Text>
             </View>
           ) : (
             <>
