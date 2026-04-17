@@ -25,13 +25,13 @@ export default function LoginScreen({ onLogin }) {
     }
     setLoading(true);
     try {
-      let result;
       if (mode === 'login') {
-        result = await loginUser(email.trim(), password);
+        const result = await loginUser(email.trim(), password);
+        onLogin(result.user_id, result.username);
       } else {
-        result = await registerUser(email.trim(), username.trim(), password);
+        await registerUser(email.trim(), username.trim(), password);
+        onLogin(email.trim(), username.trim());
       }
-      onLogin(result.user_id, result.username);
     } catch (e) {
       setError(e.message);
     } finally {
