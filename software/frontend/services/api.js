@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:5001';
+const BASE = 'https://vinehealth-software.onrender.com';
 
 export async function fetchData(device_id, date) {
   try {

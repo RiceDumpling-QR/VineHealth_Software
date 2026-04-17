@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { fetchUserDevices, fetchData, addDevice, removeDevice } from '../services/api';
+import { fetchUserDevices, fetchData, fetchDeviceDates, addDevice, removeDevice } from '../services/api';
 
 const COLORS = {
   darkGreen: '#3a6b35',
@@ -75,13 +75,11 @@ export default function ProfileScreen({ user }) {
       setDevices(d || []);
       // fetch today's summary for the first device
       if (d && d.length > 0) {
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        fetchData(d[0].device_id, today).then((res) => {
-          if (mounted) {
-            console.log('ProfileScreen: fetched summary ->', res.summary);
-            setSummary(res.summary || {});
-          }
+        fetchDeviceDates(d[0].device_id).then((dates) => {
+          if (!mounted || !dates || dates.length === 0) return;
+          fetchData(d[0].device_id, dates[0]).then((res) => {
+            if (mounted) setSummary(res.summary || {});
+          });
         });
       }
     });
