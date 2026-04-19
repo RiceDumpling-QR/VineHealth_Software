@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert, Image } from 'react-native';
 import { fetchUserDevices, fetchData, fetchDeviceDates, addDevice, removeDevice } from '../services/api';
 
 const COLORS = {
@@ -91,9 +91,9 @@ export default function ProfileScreen({ user }) {
       <View style={styles.greenBody}>
         {/* Avatar */}
         <View style={styles.avatarWrapper}>
-          <View style={styles.avatar} />
+          <Image source={require('../farmer.jpg')} style={styles.avatar} />
         </View>
-        <Text style={styles.name}>Name</Text>
+        <Text style={styles.name}>{user.username}</Text>
 
         <TouchableOpacity style={styles.addDeviceButton} onPress={openModal}>
           <Text style={styles.addDeviceText}>Add Device</Text>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#c8e6c9',
+    overflow: 'hidden',
   },
   name: {
     color: COLORS.white,
