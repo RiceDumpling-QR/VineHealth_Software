@@ -3,7 +3,7 @@ from config import supabase
 
 device_blueprint = Blueprint('device', __name__)
 
-VALID_DEVICE_IDS = {'A7K3M', '9XR2P', 'B5N8Q'}
+VALID_DEVICE_IDS = {'A7K3M', '9XR2P', 'B5N8Q','TEST000','TEST001','TEST002','TEST003'}
 
 
 @device_blueprint.route('/create', methods=['POST'])
@@ -11,9 +11,16 @@ def create_device():
     payload = request.get_json()
     if not payload or 'device_id' not in payload or 'user_id' not in payload:
         return jsonify({'status': 'error', 'message': 'Invalid device format'}), 400
-
+    # Normalize device_id from payload to avoid issues with casing/whitespace
     device_id = payload['device_id']
+    device_id = device_id.strip().upper()
     user_id = payload['user_id']
+
+    # Debug logging to help troubleshoot mismatches from the client
+    try:
+        print(f"create_device: raw={repr(payload.get('device_id'))} normalized={device_id} in_valid={device_id in VALID_DEVICE_IDS} user_id={repr(user_id)}")
+    except Exception:
+        pass
 
     if device_id not in VALID_DEVICE_IDS:
         return jsonify({
@@ -72,7 +79,8 @@ def unassign_device():
     if not payload or 'device_id' not in payload:
         return jsonify({'status': 'error', 'message': 'device_id is required'}), 400
 
-    device_id = payload['device_id']
+    # Normalize device_id to avoid whitespace/case mismatches
+    device_id = payload['device_id'].strip().upper()
     try:
         supabase.table('devices').update({'user_id': None}).eq('device_id', device_id).execute()
         return jsonify({'status': 'success', 'message': 'Device unassigned'}), 200
@@ -85,8 +93,8 @@ def update_device():
     payload = request.get_json()
     if not payload or 'device_id' not in payload:
         return jsonify({'status': 'error', 'message': 'Invalid device format'}), 400
-
-    device_id = payload['device_id']
+    # Normalize device_id for consistent DB lookups
+    device_id = payload['device_id'].strip().upper()
     try:
         update_fields = {}
         for k in ('device_name', 'location'):

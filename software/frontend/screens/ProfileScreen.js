@@ -9,7 +9,7 @@ const COLORS = {
   textGray: '#666666',
 };
 
-export default function ProfileScreen({ user }) {
+export default function ProfileScreen({ user, onLogout }) {
   const [devices, setDevices] = useState([]);
   const [summary, setSummary] = useState({});
 
@@ -97,6 +97,10 @@ export default function ProfileScreen({ user }) {
 
         <TouchableOpacity style={styles.addDeviceButton} onPress={openModal}>
           <Text style={styles.addDeviceText}>Add Device</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
         <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
@@ -268,6 +272,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addDeviceText: {
+    color: COLORS.white,
+    fontWeight: '600',
+  },
+  logoutButton: {
+    borderWidth: 1,
+    borderColor: COLORS.white,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  logoutText: {
     color: COLORS.white,
     fontWeight: '600',
   },

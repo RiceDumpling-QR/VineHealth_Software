@@ -55,7 +55,7 @@ export default function App() {
 
   const renderScreen = () => {
     switch (activeTab) {
-      case 'profile': return <ProfileScreen user={user} />;
+      case 'profile': return <ProfileScreen user={user} onLogout={() => { setUser(null); setActiveTab('home'); }} />;
       case 'trend':   return <TrendScreen user={user} />;
       case 'alerts':  return <AlertsScreen user={user} />;
       default:        return <DashboardScreen user={user} />;
